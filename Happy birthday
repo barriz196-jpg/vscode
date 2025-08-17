@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Happyfy — Birthday Playlist for You 🎵</title>
+  <meta name="theme-color" content="#121212" />
+  <style>
+    :root{
+      --bg:#121212; --panel:#181818; --muted:#9aa0a6;
+      --fg:#ffffff; --accent:#1ed760; --accent-2:#22c55e;
+      --ring:rgba(30,215,96,.35);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,Apple Color Emoji,Segoe UI Emoji;
+      background:radial-gradient(1200px 800px at 85% -10%, #1ed76022 0%, transparent 60%), var(--bg);
+      color:var(--fg); line-height:1.45; -webkit-font-smoothing:antialiased;
+    }
+    a{color:inherit}
+    .app{
+      display:grid; grid-template-rows:auto 1fr auto; min-height:100dvh;
+    }
+    /* Header */
+    .topbar{
+      position:sticky; top:0; z-index:5;
+      display:flex; align-items:center; gap:.8rem;
+      padding:14px clamp(14px, 3vw, 28px);
+      background:linear-gradient(to bottom, rgba(0,0,0,.55), rgba(0,0,0,.0)), transparent;
+      backdrop-filter:saturate(1.2) blur(6px);
+    }
+    .logo{
+      width:38px; height:38px; border-radius:50%;
+      display:grid; place-items:center; background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      box-shadow:0 0 0 6px #00000033;
+      font-weight:800; color:#0b1110;
+    }
+    .brand{font-weight:800; letter-spacing:.2px}
+    .brand small{display:block; color:var(--muted); font-weight:600; margin-top:-2px}
+    .cta{
+      margin-left:auto; display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .btn{
+      background:#262626; color:#fff; border:none; border-radius:999px; padding:10px 14px;
+      font-weight:600; cursor:pointer; transition:.2s transform, .2s background, .2s box-shadow;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn.accent{background:var(--accent); color:#0b1110; box-shadow:0 0 0 6px var(--ring)}
+    .btn.ghost{background:transparent; outline:1px solid #2b2b2b}
+    input[type="file"]{display:none}
+
+    /* Layout content */
+    .content{
+      display:grid; grid-template-columns:330px 1fr; gap:18px;
+      padding:18px; align-items:start;
+    }
+    @media (max-width: 960px){
+      .content{grid-template-columns:1fr; padding:12px}
+    }
+
+    /* Sidebar “profile/ucapan” */
+    .card{
+      background:linear-gradient(180deg,#1a1a1a,#141414);
+      border-radius:var(--radius);
+      border:1px solid #242424;
+      box-shadow:0 8px 40px #00000055 inset;
+      overflow:hidden;
+    }
+    .hero{
+      position:relative; padding:22px; display:grid; gap:16px;
+      background:
+        radial-gradient(800px 400px at -10% -20%, #1ed7601c 0%, transparent 60%),
+        linear-gradient(180deg,#151515 0%, #101010 100%);
+    }
+    .cover{
+      width:100%; aspect-ratio:1/1; border-radius:12px; overflow:hidden; border:1px solid #2a2a2a;
+      background:#0f0f0f center/cover no-repeat;
+      display:grid; place-items:center; color:#6b7280;
+    }
+    .meta h1{margin:0 0 6px; font-size:1.65rem}
+    .meta p{margin:0; color:var(--muted)}
+    .type{
+      min-height:1.8em; border-right:2px solid var(--accent); white-space:nowrap; overflow:hidden
+    }
+    .chips{display:flex; flex-wrap:wrap; gap:6px}
+    .chip{padding:6px 10px; border-radius:999px; background:#242424; border:1px solid #2a2a2a; color:#cbd5e1; font-size:.85rem}
+    .messages{display:grid; gap:10px; padding:14px}
+    .msg{
+      background:#0e0e0e; border:1px solid #242424; border-radius:12px; padding:12px 12px 12px 44px; position:relative;
+    }
+    .msg:before{
+      content:"💌"; position:absolute; left:10px; top:10px; filter:grayscale(.2)
+    }
+    .msg small{color:var(--muted)}
+    .drop{
+      margin:10px; padding:10px; border:1px dashed #2b2b2b; border-radius:10px; color:#a3a3a3; text-align:center
+    }
+
+    /* Playlist area */
+    .panel{
+      background:linear-gradient(180deg,#171717,#121212);
+      border:1px solid #242424; border-radius:var(--radius); overflow:hidden;
+    }
+    .panel-header{display:flex; align-items:end; justify-content:space-between; padding:18px}
+    .panel-header h2{margin:0}
+    .table{
+      width:100%; border-collapse:separate; border-spacing:0 8px; padding:8px 12px 18px;
+    }
+    .row{
+      display:grid; grid-template-columns:42px 1fr 100px 80px; gap:12px;
+      align-items:center; padding:8px 12px; border-radius:10px; cursor:pointer;
+    }
+    .row:hover{background:#181818}
+    .row .idx{color:#9aa0a6; text-align:center}
+    .row .title{display:flex; align-items:center; gap:12px; min-width:0}
+    .thumb{width:42px; height:42px; border-radius:6px; background:#0e0e0e center/cover no-repeat; border:1px solid #2a2a2a}
+    .song-title{font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .song-artist{color:#9aa0a6; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .dur,.act{color:#9aa0a6; font-variant-numeric:tabular-nums}
+    .row.active{background:#1a1a1a; outline:1px solid #2b2b2b}
+
+    /* Player bottom bar */
+    .player{
+      position:sticky; bottom:0; z-index:10;
+      background:linear-gradient(180deg,#0a0a0aee,#0a0a0aff);
+      border-top:1px solid #1d1d1d; padding:10px 14px;
+      display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center;
+    }
+    @media (max-width:700px){ .player{grid-template-columns:1fr} }
+    .now{
+      display:flex; align-items:center; gap:12px; min-width:0;
+    }
+    .now .mini{width:48px; height:48px; border-radius:8px; background:#0e0e0e center/cover no-repeat; border:1px solid #2a2a2a}
+    .now .info{min-width:0}
+    .now .info .t{font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .now .info .a{color:#a1a1aa; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+    .controls{display:flex; align-items:center; gap:10px; justify-content:center}
+    .icon{
+      width:40px; height:40px; display:grid; place-items:center;
+      border-radius:50%; background:#1a1a1a; border:1px solid #2a2a2a; cursor:pointer; user-select:none;
+      transition:.2s transform, .2s background;
+    }
+    .icon.small{width:34px; height:34px}
+    .icon:hover{transform:translateY(-1px)}
+    .icon.primary{background:var(--accent); color:#0b1110; font-weight:800}
+    .seek{display:flex; align-items:center; gap:8px}
+    .range{appearance:none; height:6px; background:#2a2a2a; border-radius:999px; outline:none}
+    .range::-webkit-slider-thumb{appearance:none; width:16px; height:16px; border-radius:50%; background:var(--accent); border:none; box-shadow:0 0 0 6px var(--ring)}
+    .vol{display:flex; align-items:center; gap:8px; justify-content:flex-end}
+
+    /* Toast/mini helpers */
+    .toast{
+      position:fixed; right:12px; bottom:86px; background:#1a1a1a; color:#fff; padding:10px 12px;
+      border:1px solid #2a2a2a; border-radius:10px; box-shadow:0 8px 40px #00000066; opacity:0; transform:translateY(10px);
+      transition:.25s; pointer-events:none; z-index:50;
+    }
+    .toast.show{opacity:1; transform:translateY(0)}
+    canvas#confetti{position:fixed; inset:0; pointer-events:none}
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="logo">♪</div>
+      <div class="brand">
+        Happyfy
+        <small>Birthday playlist for <span id="dearName">My Love</span> 💚</small>
+      </div>
+
+      <div class="cta">
+        <label class="btn ghost">
+          <input type="file" id="filePicker" accept="audio/*" multiple />
+          + Tambah Lagu
+        </label>
+        <button class="btn accent" id="playAll">Play semua</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- Sidebar: Ucapan & Cover -->
+      <aside class="card">
+        <div class="hero">
+          <div class="cover" id="cover"
+               style="background-image:url('data:image/svg+xml;utf8,<?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;1080&quot; height=&quot;1080&quot;><defs><linearGradient id=&quot;g&quot; x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;1&quot; y2=&quot;1&quot;><stop offset=&quot;0%25&quot; stop-color=&quot;%231ed760&quot;/><stop offset=&quot;100%25&quot; stop-color=&quot;%231a9a57&quot;/></linearGradient></defs><rect width=&quot;100%25&quot; height=&quot;100%25&quot; fill=&quot;%230b1110&quot;/><circle cx=&quot;50%25&quot; cy=&quot;50%25&quot; r=&quot;360&quot; fill=&quot;url(%23g)&quot; opacity=&quot;.25&quot;/><text x=&quot;50%25&quot; y=&quot;52%25&quot; dominant-baseline=&quot;middle&quot; text-anchor=&quot;middle&quot; font-family=&quot;Verdana&quot; font-size=&quot;80&quot; fill=&quot;white&quot;>Happyfy</text></svg>');">
+            <span>Cover Album</span>
+          </div>
+
+          <div class="meta">
+            <!-- ——— Ubah di sini: nama panggilan & sapaan ——— -->
+            <h1 id="title">Happy Birthday, Bee! 🐝</h1>
+            <p class="type" id="typewriter"
+               data-text="Playlist kecil dari aku buat kamu. Semoga harimu secerah senyummu. Press play & nikmati!"></p>
+            <div class="chips">
+              <!-- ——— Ubah di sini: chip highlights ——— -->
+              <span class="chip">19th Birthday</span>
+              <span class="chip">Made with ❤️</span>
+              <span class="chip">No ads 😆</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="messages">
+          <!-- ——— Ubah di sini: pesan/quotes ——— -->
+          <div class="msg">
+            <strong>Dear <span id="dearName2">Bee</span>,</strong><br/>
+            Happy birthday! Semoga langkah barumu di kampus penuh teman baik, ilmu yang seru,
+            dan kesempatan yang bikin kamu makin berkilau. Proud of you always. ✨
+            <br/><small>- from me</small>
+          </div>
+          <div class="msg">Kalau kamu bisa membaca ini, berarti kamu resmi jadi <em>CEO of My Heart</em>. 🫶</div>
+          <div class="msg">Setiap lagu di playlist ini ada alasannya. Tebak yang mana ‘lagu kita’? 😉</div>
+
+          <div class="drop" id="dropZone">Seret & lepas file MP3 ke sini untuk menambah lagu</div>
+        </div>
+      </aside>
+
+      <!-- Playlist -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Playlist untuk Kamu 💚</h2>
+            <div style="color:var(--muted); font-size:.95rem">Klik lagu untuk memutar</div>
+          </div>
+          <div>
+            <label class="btn ghost">
+              <input type="file" id="coverPicker" accept="image/*" />
+              Ubah Cover
+            </label>
+          </div>
+        </div>
+
+        <div id="table" class="table" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <!-- Player -->
+    <footer class="player">
+      <div class="now">
+        <div class="mini" id="miniCover"></div>
+        <div class="info">
+          <div class="t" id="nowTitle">—</div>
+          <div class="a" id="nowArtist">—</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="icon small" id="btnShuffle" title="Shuffle">🔀</button>
+        <button class="icon small" id="btnPrev" title="Sebelumnya">⏮</button>
+        <button class="icon primary" id="btnPlay" title="Play/Pause">▶️</button>
+        <button class="icon small" id="btnNext" title="Berikutnya">⏭</button>
+        <button class="icon small" id="btnRepeat" title="Repeat">🔁</button>
+      </div>
+
+      <div class="seek">
+        <span id="timeCur" style="min-width:38px; text-align:right; font-variant-numeric:tabular-nums">0:00</span>
+        <input type="range" id="seek" class="range" min="0" max="100" value="0" />
+        <span id="timeTot" style="min-width:38px; font-variant-numeric:tabular-nums">0:00</span>
+        <div class="vol">
+          🔊 <input type="range" id="vol" class="range" min="0" max="1" step="0.01" value="0.9" style="width:120px" />
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast">Ditambahkan ke playlist</div>
+
+  <audio id="audio" crossorigin="anonymous"></audio>
+
+  <script>
+    // ——————————————————————————————————————————
+    // KONFIGURASI (UBAH DI SINI)
+    // ——————————————————————————————————————————
+    const CONFIG = {
+      dearName: "Bee",
+      greetingTitle: "Happy Birthday, Bee! 🐝",
+      typewriterText: "Playlist kecil dari aku buat kamu. Semoga harimu secerah senyummu. Press play & nikmati!",
+      // Sampel lagu bawaan (boleh hapus). Note: gunakan file lokal sendiri untuk pengalaman terbaik.
+      // Kamu bisa ganti "src" ke file lokal relatif (mis. ./lagu/lagu1.mp3) jika menaruh file di folder sama.
+      samples: [
+        {
+          title: "Our Little Universe",
+          artist: "Your Favorite Human",
+          duration: 0, // auto diisi
+          cover: "",   // auto fallback ke cover utama
+          src: "https://cdn.pixabay.com/download/audio/2021/10/26/audio_3b20e7f1b5.mp3?filename=relaxed-vlog-14561.mp3"
+        },
+        {
+          title: "You + Me",
+          artist: "Always",
+          duration: 0,
+          cover: "",
+          src: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_b8a78d26f1.mp3?filename=love-112197.mp3"
+        }
+      ]
+    };
+
+    // ——————————————————————————————————————————
+    // STATE
+    // ——————————————————————————————————————————
+    let playlist = [...CONFIG.samples];
+    let index = 0;
+    let isPlaying = false;
+    let isShuffle = false;
+    let repeatMode = "off"; // off | one | all
+
+    const $ = (q)=>document.querySelector(q);
+    const el = {
+      dearName: $("#dearName"),
+      dearName2: $("#dearName2"),
+      title: $("#title"),
+      typewriter: $("#typewriter"),
+      table: $("#table"),
+      cover: $("#cover"),
+      miniCover: $("#miniCover"),
+      nowTitle: $("#nowTitle"),
+      nowArtist: $("#nowArtist"),
+      audio: $("#audio"),
+      timeCur: $("#timeCur"),
+      timeTot: $("#timeTot"),
+      seek: $("#seek"),
+      vol: $("#vol"),
+      btnPlay: $("#btnPlay"),
+      btnPrev: $("#btnPrev"),
+      btnNext: $("#btnNext"),
+      btnShuffle: $("#btnShuffle"),
+      btnRepeat: $("#btnRepeat"),
+      playAll: $("#playAll"),
+      filePicker: $("#filePicker"),
+      coverPicker: $("#coverPicker"),
+      dropZone: $("#dropZone"),
+      toast: $("#toast"),
+      confetti: $("#confetti"),
+    };
+
+    // Init UI texts
+    el.dearName.textContent = CONFIG.dearName;
+    el.dearName2.textContent = CONFIG.dearName;
+    el.title.textContent = CONFIG.greetingTitle;
+    el.typewriter.dataset.text = CONFIG.typewriterText;
+
+    // ——————————————————————————————————————————
+    // TYPEWRITER
+    // ——————————————————————————————————————————
+    function typewriter(el){
+      const text = el.dataset.text || "";
+      el.textContent = "";
+      let i=0;
+      function step(){
+        if(i <= text.length){ el.textContent = text.slice(0,i++); requestAnimationFrame(step); }
+      }
+      step();
+    }
+    typewriter(el.typewriter);
+
+    // ——————————————————————————————————————————
+    // PLAYLIST RENDER
+    // ——————————————————————————————————————————
+    function formatTime(sec){
+      if(!isFinite(sec) || sec<0) return "0:00";
+      const m = Math.floor(sec/60);
+      const s = Math.floor(sec%60).toString().padStart(2,"0");
+      return `${m}:${s}`;
+    }
+
+    function renderTable(){
+      el.table.innerHTML = "";
+      playlist.forEach((song, i)=>{
+        const row = document.createElement("div");
+        row.className = "row" + (i===index? " active":"");
+        row.dataset.index = i;
+
+        const idx = document.createElement("div");
+        idx.className = "idx";
+        idx.textContent = i===index && isPlaying ? "▶" : (i+1);
+
+        const title = document.createElement("div");
+        title.className = "title";
+        const thumb = document.createElement("div");
+        thumb.className = "thumb";
+        thumb.style.backgroundImage = `url(${song.cover || getCover()})`;
+        const meta = document.createElement("div");
+        const t = document.createElement("div"); t.className="song-title"; t.textContent = song.title;
+        const a = document.createElement("div"); a.className="song-artist"; a.textContent = song.artist || "—";
+        meta.appendChild(t); meta.appendChild(a);
+        title.appendChild(thumb); title.appendChild(meta);
+
+        const dur = document.createElement("div"); dur.className="dur"; dur.textContent = song.duration? formatTime(song.duration):"—";
+        const act = document.createElement("div"); act.className="act"; act.innerHTML = "♡";
+
+        row.appendChild(idx); row.appendChild(title); row.appendChild(dur); row.appendChild(act);
+        row.addEventListener("click", ()=>{ playAt(i); });
+        el.table.appendChild(row);
+      });
+    }
+
+    function getCover(){
+      const bg = el.cover.style.backgroundImage || "";
+      // extract url("...") content if exists
+      const match = bg.match(/url\\((\"|\\')?(.*?)(\\1)\\)/);
+      return match? match[2] : "";
+    }
+
+    function updateNowPlaying(){
+      const s = playlist[index];
+      el.nowTitle.textContent = s?.title || "—";
+      el.nowArtist.textContent = s?.artist || "—";
+      el.miniCover.style.backgroundImage = `url(${s?.cover || getCover()})`;
+      [...document.querySelectorAll(".row")].forEach((r,i)=>{
+        r.classList.toggle("active", i===index);
+        r.querySelector(".idx").textContent = (i===index && isPlaying) ? "▶" : (i+1);
+      });
+    }
+
+    // ——————————————————————————————————————————
+    // AUDIO
+    // ——————————————————————————————————————————
+    const audio = el.audio;
+    audio.volume = parseFloat(el.vol.value);
+
+    function loadTrack(i){
+      index = (i + playlist.length) % playlist.length;
+      audio.src = playlist[index].src;
+      audio.playbackRate = 1;
+      audio.currentTime = 0;
+      audio.onloadedmetadata = ()=>{
+        playlist[index].duration = audio.duration;
+        el.timeTot.textContent = formatTime(audio.duration);
+        renderTable(); updateNowPlaying();
+      };
+    }
+
+    function play(){ if(!audio.src) loadTrack(index); audio.play(); isPlaying = true; el.btnPlay.textContent = "⏸"; updateNowPlaying(); }
+    function pause(){ audio.pause(); isPlaying = false; el.btnPlay.textContent = "▶️"; updateNowPlaying(); }
+    function toggle(){ isPlaying? pause(): play(); }
+
+    function next(){
+      if(isShuffle){
+        let nextIdx = Math.floor(Math.random()*playlist.length);
+        if(nextIdx===index && playlist.length>1) nextIdx = (index+1)%playlist.length;
+        loadTrack(nextIdx); play();
+      }else{
+        if(index===playlist.length-1){
+          if(repeatMode==="all"){ loadTrack(0); play(); }
+          else { pause(); audio.currentTime=0; }
+        }else{ loadTrack(index+1); play(); }
+      }
+    }
+    function prev(){
+      if(audio.currentTime>3){ audio.currentTime=0; return; }
+      loadTrack(index-1); play();
+    }
+
+    audio.ontimeupdate = ()=>{
+      const p = audio.duration? (audio.currentTime/audio.duration)*100 : 0;
+      el.seek.value = p||0;
+      el.timeCur.textContent = formatTime(audio.currentTime);
+    };
+    audio.onended = ()=>{
+      if(repeatMode==="one"){ audio.currentTime=0; play(); }
+      else next();
+    };
+
+    // ——————————————————————————————————————————
+    // EVENTS
+    // ——————————————————————————————————————————
+    el.btnPlay.addEventListener("click", toggle);
+    el.btnNext.addEventListener("click", next);
+    el.btnPrev.addEventListener("click", prev);
+
+    el.btnShuffle.addEventListener("click", ()=>{
+      isShuffle = !isShuffle;
+      flashToast(isShuffle? "Shuffle: ON":"Shuffle: OFF");
+      el.btnShuffle.style.outline = isShuffle? "2px solid var(--accent)" : "none";
+    });
+
+    el.btnRepeat.addEventListener("click", ()=>{
+      repeatMode = repeatMode==="off" ? "one" : repeatMode==="one" ? "all" : "off";
+      const label = repeatMode==="one" ? "Repeat: ONE" : repeatMode==="all" ? "Repeat: ALL" : "Repeat: OFF";
+      flashToast(label);
+      el.btnRepeat.textContent = repeatMode==="one" ? "🔂" : "🔁";
+      el.btnRepeat.style.outline = repeatMode==="off" ? "none":"2px solid var(--accent)";
+    });
+
+    el.seek.addEventListener("input", ()=>{
+      if(!audio.duration) return;
+      audio.currentTime = (el.seek.value/100)*audio.duration;
+    });
+
+    el.vol.addEventListener("input", ()=> audio.volume = parseFloat(el.vol.value) );
+
+    el.playAll.addEventListener("click", ()=>{
+      if(!playlist.length) return;
+      loadTrack(0); play(); burstConfetti();
+    });
+
+    // Tambah lagu via input
+    el.filePicker.addEventListener("change", async (e)=>{
+      await addFiles(e.target.files);
+      renderTable(); flashToast("Lagu ditambahkan"); if(!audio.src) loadTrack(0);
+      e.target.value = "";
+    });
+
+    // Ubah cover
+    el.coverPicker.addEventListener("change", (e)=>{
+      const f = e.target.files?.[0]; if(!f) return;
+      const url = URL.createObjectURL(f);
+      el.cover.style.backgroundImage = `url(${url})`;
+      el.miniCover.style.backgroundImage = `url(${url})`;
+      flashToast("Cover diganti 💿");
+    });
+
+    // Drag & drop
+    ;["dragenter","dragover"].forEach(ev=>{
+      el.dropZone.addEventListener(ev, e=>{ e.preventDefault(); el.dropZone.style.borderColor="var(--accent)"; });
+    });
+    ;["dragleave","drop"].forEach(ev=>{
+      el.dropZone.addEventListener(ev, e=>{ e.preventDefault(); el.dropZone.style.borderColor="#2b2b2b"; });
+    });
+    el.dropZone.addEventListener("drop", async (e)=>{
+      const files = e.dataTransfer.files;
+      await addFiles(files); renderTable(); flashToast("Lagu ditambahkan");
+      if(!audio.src) loadTrack(0);
+    });
+
+    async function addFiles(files){
+      const list = [...files].filter(f=>f.type.startsWith("audio/"));
+      for(const f of list){
+        const url = URL.createObjectURL(f);
+        // Guess title/artist dari nama file: "Artist - Title.mp3"
+        const name = f.name.replace(/\.[^/.]+$/, "");
+        const m = name.split(" - ");
+        const artist = m.length>1? m[0] : "Unknown";
+        const title = m.length>1? m.slice(1).join(" - ") : m[0];
+        playlist.push({ title, artist, duration:0, cover:getCover(), src:url });
+      }
+    }
+
+    // ——————————————————————————————————————————
+    // TOAST
+    // ——————————————————————————————————————————
+    let toastTimer;
+    function flashToast(text){
+      el.toast.textContent = text;
+      el.toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>el.toast.classList.remove("show"), 1600);
+    }
+
+    // ——————————————————————————————————————————
+    // CONFETTI (ringan)
+    // ——————————————————————————————————————————
+    const ctx = el.confetti.getContext("2d");
+    const pieces = [];
+    const COLORS = ["#1ed760","#22c55e","#86efac","#bbf7d0","#34d399"];
+    function resize(){
+      el.confetti.width = innerWidth; el.confetti.height = innerHeight;
+    }
+    addEventListener("resize", resize); resize();
+
+    function spawn(x,y){
+      for(let i=0;i<40;i++){
+        pieces.push({
+          x, y,
+          vx:(Math.random()*2-1)*4,
+          vy:-(Math.random()*5+3),
+          g:.15 + Math.random()*.05,
+          r:2+Math.random()*3,
+          c:COLORS[Math.floor(Math.random()*COLORS.length)],
+          a:1,
+          life: 60 + Math.random()*40
+        });
+      }
+    }
+    function step(){
+      ctx.clearRect(0,0,el.confetti.width,el.confetti.height);
+      for(let i=pieces.length-1;i>=0;i--){
+        const p = pieces[i];
+        p.vy += p.g; p.x += p.vx; p.y += p.vy; p.a -= 1/p.life;
+        if(p.a<=0 || p.y>el.confetti.height+20){ pieces.splice(i,1); continue; }
+        ctx.globalAlpha = Math.max(0,p.a);
+        ctx.fillStyle = p.c;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+      }
+      requestAnimationFrame(step);
+    }
+    step();
+
+    function burstConfetti(){
+      spawn(innerWidth/2, innerHeight-80);
+      setTimeout(()=> spawn(innerWidth/2 + 120, innerHeight-80), 120);
+      setTimeout(()=> spawn(innerWidth/2 - 120, innerHeight-80), 240);
+    }
+
+    // Render awal
+    renderTable();
+    updateNowPlaying();
+
+    // Klik pertama play -> confetti
+    el.btnPlay.addEventListener("click", ()=>{
+      if(!isPlaying){ setTimeout(burstConfetti, 300); }
+    });
+
+  </script>
+</body>
+</html>
